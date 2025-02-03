@@ -8,10 +8,16 @@ include('includes/navbar.inc.php');
 // Check if the 'page' parameter is set in the URL and if it is a valid page
 if (isset($_GET['page'])) {
   $page = $_GET['page']; // If valid, set $page to the value of the 'page' parameter
-  $after_login_pages = ['dashboard'];
+  $after_login_pages = ['dashboard', 'user/home'];
+  $admin_pages = ['user/home'];
+  $user_pages = [];
   $before_login_pages = ['login', 'register'];
   if ($page === 'logout' || (in_array($page, $before_login_pages) && !LoggedInUser()) || (in_array($page, $after_login_pages) && LoggedInUser())) {
-    include('pages/' . $page . '.php');
+    if (in_array($page, $admin_pages) && !isAdmin()) {
+      header('Location: ./');
+    } else {
+      include('pages/' . $page . '.php');
+    }
   } else {
     header('Location: ./');
   }
