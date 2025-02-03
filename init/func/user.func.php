@@ -37,7 +37,8 @@ function LoggedInUser()
     return false;
   }
 }
-function isAdmin(){
+function isAdmin()
+{
   global $db;
   if (isset($_SESSION['id_user'])) {
     $id_user = $_SESSION['id_user'];
