@@ -13,7 +13,7 @@ function getUsers()
 function createUser($user_label, $username, $passwd)
 {
   global $db;
-  $query = $db->prepare("INSERT INTO tbl_user(user_label,username,passwd,level) VALUES ('$user_label','$username','$passwd','User')");
+  $query = $db->prepare("INSERT INTO tbl_user SET (user_label,username,passwd,level) VALUES ('$user_label','$username','$passwd','User')");
   if ($query->execute()) {
     return true;
   }
