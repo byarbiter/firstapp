@@ -1,4 +1,8 @@
 <?php
+// Ensure the array functions are available
+if (!function_exists('array_diff')) {
+    require_once 'path/to/array_functions.php';
+}
 
 function getProduct()
 {
@@ -85,6 +89,28 @@ function deleteProduct($id)
         return false;
     }
 }
+
+function arraysAreDifferent($array1, $array2)
+{
+    // If array sizes are different, they must be different
+    if (count($array1) !== count($array2)) {
+        return true;
+    }
+
+    // Sort both arrays for consistent comparison
+    sort($array1);
+    sort($array2);
+
+    // Compare each element
+    for ($i = 0; $i < count($array1); $i++) {
+        if ($array1[$i] !== $array2[$i]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_categories)
 {
     global $db;
@@ -100,7 +126,7 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
                 $existingCategories[] = $row['id_category'];
             }
         }
-        $categoryChanged = !empty(array_diff($existingCategories, $id_categories)) || !empty(array_diff($id_categories, $existingCategories));
+        $categoryChanged = arraysAreDifferent($existingCategories, $id_categories);
 
         if ($productUpdated || $categoryChanged) {
             $db->query("DELETE FROM tbl_product_category WHERE id_product = '$id'");
