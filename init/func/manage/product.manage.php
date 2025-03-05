@@ -34,26 +34,53 @@ function productSlugExists($slug)
     }
     return false;
 }
-function createProduct($name, $slug, $price, $short_des, $long_des, $id_categories)
+function createProduct($name, $slug, $price, $short_des, $long_des, $image, $id_categories)
 {
     //tbl_product -> id_product -> tbl_product_category
-    global $db;
-    $db->begin_transaction();
-    try {
-        $query = $db->prepare("INSERT INTO tbl_product (name,slug,price,qty,short_des,long_des) VALUE ('$name', '$slug', '$price',0,'$short_des','$long_des')");
-        if ($query->execute()) {
-            $id_product = $query->insert_id;
-            foreach ($id_categories as $id_category) {
-                $query1 = $db->prepare("INSERT INTO tbl_product_category (id_category,id_product) VALUE ('$id_category', '$id_product')");
-                $query1->execute();
+    $img_name = $image['name'];
+    $img_size = $image['size'];
+    $tmp_name = $image['tmp_name'];
+    $error = $image['error'];
+
+    $dir = './assets/images/';
+    $allow_exs = ['jpg', 'jpeg', 'png'];
+    if ($error !== 0) {
+        throw new Exception('Unknown error occurred');
+        // return 'File upload error: ' . $image['error'];
+    }
+    if ($img_size > 50000000) {
+        throw new Exception('File size is large');
+        // return 'File size is large';
+    }
+    $image_ex = pathinfo($img_name, PATHINFO_EXTENSION);
+    $image_lowercase_ex = strtolower($image_ex);
+    if (!in_array($image_lowercase_ex, $allow_exs)) {
+        throw new Exception('File extension  is not allowed!');
+        // return 'File extension  is not allowed!';
+    }
+    if (in_array($image_lowercase_ex, $allow_exs)) {
+        $new_img_name = uniqid("PI-") . '.' . $image_lowercase_ex;
+        $image_path = $dir . $new_img_name;
+        move_uploaded_file($tmp_name, $image_path);
+        global $db;
+        $db->begin_transaction();
+        try {
+            $query = $db->prepare("INSERT INTO tbl_product (name,slug,price,qty,short_des,long_des, image) VALUE ('$name', '$slug', '$price',0,'$short_des','$long_des', '$image_path')");
+
+            if ($query->execute()) {
+                $id_product = $query->insert_id;
+                foreach ($id_categories as $id_category) {
+                    $query1 = $db->prepare("INSERT INTO tbl_product_category (id_category,id_product) VALUE ('$id_category', '$id_product')");
+                    $query1->execute();
+                }
+                $db->commit();
+                return true;
             }
-            $db->commit();
-            return true;
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            $db->rollback();
+            return false;
         }
-        return false;
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        $db->rollback();
     }
 }
 function getProductByID($id)
@@ -71,12 +98,14 @@ function deleteProduct($id)
     $db->begin_transaction();
     try {
         // First delete related records in the junction table
-        $db->query("DELETE FROM tbl_product_category WHERE id_product = '$id'");
+        // $db->query("DELETE FROM tbl_product_category WHERE id_product = '$id'");
 
         // Then delete the product
+        $product = getProductByID($id);
         $db->query("DELETE FROM tbl_product WHERE id_product = '$id'");
 
         if ($db->affected_rows) {
+            unlink($product->image);
             $db->commit();
             return true;
         } else {

@@ -1,14 +1,15 @@
 <?php
-$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = '';
-if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && isset($_POST['short_des']) && isset($_POST['long_des'])) {
+$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $image_err = '';
+if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && isset($_POST['short_des']) && isset($_POST['long_des']) && isset($_FILES['image'])) {
     $name = $_POST['name'];
     $slug = $_POST['slug'];
     $price = $_POST['price'];
     $short_des = $_POST['short_des'];
     $long_des = $_POST['long_des'];
     $id_categories = isset($_POST['id_categories']) ? $_POST['id_categories'] : [];
-
-
+    $image = $_FILES['image'];
+    // print_r($image);
+    // die();
     if (empty($name)) {
         $name_err = "Name is required!";
     } else {
@@ -37,26 +38,33 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
         $long_des_err = "Long Description is required!";
     }
     if (empty($name_err) && empty($slug_err) && empty($price_err) && empty($short_des_err) && empty($long_des_err)) {
-        if (createProduct($name, $slug, $price, $short_des, $long_des, $id_categories)) {
-            echo '<div class="alert alert-success" role="alert">
-                  Product create successfully. <a href="./?page=product/home">Product Page</a>
-                 </div>';
-            $name_err = $slug_err = $price_err = $short_des_err = $long_des_err = '';
-            unset($_POST['name']);
-            unset($_POST['slug']);
-            unset($_POST['price']);
-            unset($_POST['short_des']);
-            unset($_POST['long_des']);
-            unset($_POST['id_categories']);
-        } else {
-            echo  '<div class="alert alert-danger" role="alert">
-            Product create Failed.
-           </div>';
+        try {
+            if (createProduct($name, $slug, $price, $short_des, $long_des, $image, $id_categories)) {
+                echo '<div class="alert alert-success" role="alert">
+                Product create successfully. <a href="./?page=product/home">Product Page</a>
+                </div>';
+                $name_err = $slug_err = $price_err = $short_des_err = $long_des_err = '';
+                unset($_POST['name']);
+                unset($_POST['slug']);
+                unset($_POST['price']);
+                unset($_POST['short_des']);
+                unset($_POST['long_des']);
+                unset($_POST['id_categories']);
+            } else {
+                echo  '<div class="alert alert-danger" role="alert">
+                Product create Failed.
+        </div>';
+            }
+        } catch (\throwable $th) {
+            $image_err = $th->getMessage();
+        //     echo  '<div class="alert alert-danger" role="alert">
+        //         ' . $th->getMessage() . '
+        // </div>';
         }
     }
 }
 ?>
-<form action="./?page=product/create" method="post" class="w-50 mx-auto">
+<form action="./?page=product/create" method="post" class="w-50 mx-auto" enctype="multipart/form-data">
     <h1>Create Product</h1>
     <div class="mb-3">
         <label for="name" class="form-label">Name</label>
@@ -91,6 +99,13 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
         <textarea name="long_des" class="form-control <?php echo $long_des_err !== '' ? 'is-invalid' : '' ?>"><?php echo isset($_POST['long_des']) ? $_POST['long_des'] : '' ?></textarea>
         <div class="invalid-feedback">
             <?php echo $long_des_err ?>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="product-image" class="form-label">Select Product Image</label>
+        <input name="image" class="form-control <?php echo $image_err !== '' ? 'is-invalid' : '' ?>" type="file" id="product-image">
+        <div class="invalid-feedback">
+            <?php echo $image_err ?>
         </div>
     </div>
     <div class="mb-3">

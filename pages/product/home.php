@@ -14,8 +14,9 @@
                     <th>Slug</th>
                     <th>Price</th>
                     <th>Quantity</th>
-                    <th>Short Description</th>  
+                    <th>Short Description</th>
                     <th>Long Description</th>
+                    <th>Image</th>
                     <th>Action</th>
                 </tr>
                 <?php
@@ -42,6 +43,7 @@
                             <td><?php echo $row->qty ?></td>
                             <td><?php echo $row->short_des ?></td>
                             <td><?php echo $row->long_des ?></td>
+                            <td><img style="width: 50px" src=" <?php echo $row->image ?>" alt=""></td>
                             <td>
                                 <a class="btn btn-primary" href="./?page=product/update&id=<?php echo $row->id_product ?>">update</a>
                                 <a class="btn btn-danger" href="./?page=product/delete&id=<?php echo $row->id_product ?>">delete</a>
