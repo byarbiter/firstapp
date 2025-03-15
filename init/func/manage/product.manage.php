@@ -140,14 +140,55 @@ function arraysAreDifferent($array1, $array2)
     return false;
 }
 
-function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_categories)
+function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_categories, $image = null)
 {
     global $db;
     $db->begin_transaction();
     try {
-        $query = $db->query("UPDATE tbl_product SET name = '$name', slug = '$slug', price = '$price', short_des = '$short_des', long_des = '$long_des' WHERE id_product = '$id'");
+        $image_path = null;
+        
+        // Process image if provided
+        if ($image && $image['name'] !== '') {
+            $img_name = $image['name'];
+            $img_size = $image['size'];
+            $tmp_name = $image['tmp_name'];
+            $error = $image['error'];
 
-        $productUpdated = $db->affected_rows > 0;
+            $dir = './assets/images/';
+            $allow_exs = ['jpg', 'jpeg', 'png'];
+            
+            if ($error !== 0) {
+                throw new Exception('Unknown error occurred');
+            }
+            
+            if ($img_size > 50000000) {
+                throw new Exception('File size is large');
+            }
+
+            $image_ex = pathinfo($img_name, PATHINFO_EXTENSION);
+            $image_lowercase_ex = strtolower($image_ex);
+            
+            if (!in_array($image_lowercase_ex, $allow_exs)) {
+                throw new Exception('File extension is not allowed!');
+            }
+            
+            $new_img_name = uniqid("PI-") . '.' . $image_lowercase_ex;
+            $image_path = $dir . $new_img_name;
+            move_uploaded_file($tmp_name, $image_path);
+            
+            // Update query with image
+            $query = $db->query("UPDATE tbl_product SET name = '$name', slug = '$slug', price = '$price', 
+                                short_des = '$short_des', long_des = '$long_des', image = '$image_path' 
+                                WHERE id_product = '$id'");
+        } else {
+            // Update query without image
+            $query = $db->query("UPDATE tbl_product SET name = '$name', slug = '$slug', price = '$price', 
+                                short_des = '$short_des', long_des = '$long_des' 
+                                WHERE id_product = '$id'");
+        }
+
+        // $productUpdated = $db->affected_rows > 0;
+        $productUpdated = ($query !== false);
         $existingCategoriesResult = getProductCategories($id);
         $existingCategories = [];
         if ($existingCategoriesResult) {
@@ -166,6 +207,8 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
             $db->commit();
             return true;
         }
+        
+        $db->commit();
         return false;
     } catch (Exception $e) {
         error_log($e->getMessage());
@@ -173,10 +216,22 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
         return false;
     }
 }
-function getProductCategories($id_product)
+// function getProductCategories($id_product)
+// {
+//     global $db;
+//     $query = $db->query("SELECT * FROM tbl_product_category WHERE id_product = '$id_product'");
+//     if ($query->num_rows) {
+//         while($row = $query-> fetch_object()){
+//             $categories[] = $row -> id_category;
+//         }
+//         return $categories;
+//     }
+//     return [];
+// }
+function getProductCategories($id)
 {
     global $db;
-    $query = $db->query("SELECT * FROM tbl_product_category WHERE id_product = '$id_product'");
+    $query = $db->query("SELECT * FROM tbl_category INNER JOIN tbl_product_category ON tbl_category.id_category = tbl_product_category.id_category WHERE id_product = '$id'");
     if ($query->num_rows) {
         return $query;
     }

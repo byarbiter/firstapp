@@ -5,8 +5,17 @@ if (!isset($_GET['id']) || getProductByID($_GET['id']) === null) {
 }
 
 $manage_product = getProductByID($_GET['id']);
+$product_categories = getProductCategories($_GET['id']);
+$id_product_categories = [];
 
-$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $id_categories_err = '';
+if ($product_categories !== null) {
+    while ($row = $product_categories->fetch_object()) {
+        $id_product_categories[] = $row->id_category;
+    }
+}
+
+$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $id_categories_err = $image_err = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
     $slug = $_POST['slug'] ?? '';
@@ -14,10 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $short_des = $_POST['short_des'] ?? '';
     $long_des = $_POST['long_des'] ?? '';
     $id_categories = isset($_POST['id_categories']) ? $_POST['id_categories'] : [];
+    $image = $_FILES['image'] ?? '';
 
     // Validation
     if (empty($name)) {
         $name_err = "Name is required!";
+    } else {
+        if ($name !== $manage_product->name && productNameExists($name)) {
+            $name_err = "Name is already exists!";
+        }
     }
     if (empty($slug)) {
         $slug_err = "Slug is required!";
@@ -39,23 +53,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_categories_err = "At least one category is required!";
     }
 
+    // Make image optional for updates
+    $image_empty = empty($image['name']);
+    if ($image_empty) {
+        $image = null;
+    }
+
     // Debug info - you can remove this later
     // echo '<div class="alert alert-info">Processing form: ';
     // echo 'Categories selected: ' . (empty($id_categories) ? 'None' : implode(', ', $id_categories));
     // echo '</div>';
 
-    if (empty($name_err) && empty($slug_err) && empty($price_err) && empty($short_des_err) && empty($long_des_err) && empty($id_categories_err)) {
-        if (updateProduct($manage_product->id_product, $name, $slug, $price, $short_des, $long_des, $id_categories)) {
+    if (
+        empty($name_err) && empty($slug_err) && empty($price_err) && empty($short_des_err) &&
+        empty($long_des_err) && empty($id_categories_err)
+    ) {
+
+        if (updateProduct($manage_product->id_product, $name, $slug, $price, $short_des, $long_des, $id_categories, $image)) {
             echo '<div class="alert alert-success" role="alert">
                 Product Updated successfully. <a href="./?page=product/home">Product Page</a>
                 </div>';
-            $name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $id_categories_err = '';
-            unset($_POST['name']);
-            unset($_POST['slug']);
-            unset($_POST['price']);
-            unset($_POST['short_des']);
-            unset($_POST['long_des']);
-            unset($_POST['id_categories']);
+
+            // Reset form and errors
+            $name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $id_categories_err = $image_err = '';
+            unset(
+                $_POST['name'],
+                $_POST['slug'],
+                $_POST['price'],
+                $_POST['short_des'],
+                $_POST['long_des'],
+                $_POST['id_categories'],
+                $_POST['image']
+            );
+
+            // Refresh product data after update
+            $manage_product = getProductByID($_GET['id']);
+            $product_categories = getProductCategories($_GET['id']);
+            $id_product_categories = [];
+
+            if ($product_categories !== null) {
+                while ($row = $product_categories->fetch_object()) {
+                    $id_product_categories[] = $row->id_category;
+                }
+            }
         } else {
             echo '<div class="alert alert-danger" role="alert">
             Product update Failed.
@@ -63,11 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-// Make sure we have the latest data
-$manage_product = getProductByID($_GET['id']);
+// $id_categories_of_product = getProductCategories($GET['id']);
+
+// Get the categories of the product
+// $manage_product = getProductByID($_GET['id']); - duplicate removed
 ?>
 
-<form action="./?page=product/update&id=<?php echo $manage_product->id_product ?>" method="post" class="w-50 mx-auto">
+<form action="./?page=product/update&id=<?php echo $manage_product->id_product ?>" method="post" class="w-50 mx-auto" enctype="multipart/form-data">
     <h1>Update Product</h1>
     <div class="mb-3">
         <label for="name" class="form-label">Name</label>
@@ -110,37 +152,38 @@ $manage_product = getProductByID($_GET['id']);
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Categories</label>
-        <div class="border rounded p-3 <?php echo $id_categories_err !== '' ? 'border-danger' : '' ?>">
-            <?php
-            $categories = getCategories();
-            if ($categories !== null) {
-                while ($category = $categories->fetch_object()) {
-                    $checked = '';
-                    $product_categories = getProductCategories($manage_product->id_product);
-                    if ($product_categories !== null) {
-                        mysqli_data_seek($product_categories, 0); // Reset the pointer to start
-                        while ($product_category = $product_categories->fetch_object()) {
-                            if ($product_category->id_category == $category->id_category) {
-                                $checked = 'checked';
-                                break;
-                            }
-                        }
-                    }
-                    echo '<div class="form-check">';
-                    echo '<input class="form-check-input" type="checkbox" name="id_categories[]" value="' . $category->id_category . '" id="category_' . $category->id_category . '" ' . $checked . '>';
-                    echo '<label class="form-check-label" for="category_' . $category->id_category . '">' . $category->name . '</label>';
-                    echo '</div>';
-                }
-            } else {
-                echo '<p class="text-muted">No categories available</p>';
-            }
-            ?>
+        <label for="product-image" class="form-label">Select Product Image (Optional for updates)</label>
+        <input name="image" class="form-control <?php echo $image_err !== '' ? 'is-invalid' : '' ?>" type="file" id="product-image">
+        <div class="invalid-feedback">
+            <?php echo $image_err ?>
         </div>
-        <?php if ($id_categories_err !== '') : ?>
-            <div class="text-danger mt-1 small">
-                <?php echo $id_categories_err ?>
+        <?php if (!empty($manage_product->image)): ?>
+            <div class="mt-2">
+                <small class="text-muted">Current image: <?php echo basename($manage_product->image); ?></small>
             </div>
+        <?php endif; ?>
+    </div>
+
+    <div class="mb-3">
+        <label>Categories</label>
+        <?php
+        $manage_categories = getCategories();
+        if ($manage_categories !== null) {
+            while ($row = $manage_categories->fetch_object()) {
+                $checked = in_array($row->id_category, $id_product_categories) ? 'checked' : '';
+        ?>
+                <div class="form-check">
+                    <input <?php echo $checked ?> name="id_categories[]" class="form-check-input" type="checkbox" value="<?php echo $row->id_category ?>" id="category-<?php echo $row->id_category ?>">
+                    <label class="form-check-label" for="category-<?php echo $row->id_category ?>">
+                        <?php echo $row->name ?>
+                    </label>
+                </div>
+        <?php
+            }
+        }
+        ?>
+        <?php if ($id_categories_err): ?>
+            <div class="text-danger small mt-1"><?php echo $id_categories_err ?></div>
         <?php endif; ?>
     </div>
 
@@ -148,6 +191,4 @@ $manage_product = getProductByID($_GET['id']);
         <a href="./?page=product/home" class="btn btn-secondary">Cancel</a>
         <button type="submit" class="btn btn-success">Update</button>
     </div>
-
-
 </form>

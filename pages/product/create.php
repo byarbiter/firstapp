@@ -57,9 +57,9 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
             }
         } catch (\throwable $th) {
             $image_err = $th->getMessage();
-        //     echo  '<div class="alert alert-danger" role="alert">
-        //         ' . $th->getMessage() . '
-        // </div>';
+            //     echo  '<div class="alert alert-danger" role="alert">
+            //         ' . $th->getMessage() . '
+            // </div>';
         }
     }
 }
@@ -125,8 +125,10 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
             }
         }
         ?>
-        <div class="d-flex justify-content-between">
-            <a href="./?page=product/home" role="button" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-success">Create</button>
-        </div>
+    </div>
+    <div class="d-flex justify-content-between">
+        <a href="./?page=product/home" role="button" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-success">Create</button>
+    </div>
+
 </form>
