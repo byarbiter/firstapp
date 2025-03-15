@@ -122,8 +122,6 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
     $db->begin_transaction();
     try {
         $image_path = null;
-
-
         // Process image if provided
         if ($image && $image['name'] !== '') {
             $image_path = UploadProductImage($image);
