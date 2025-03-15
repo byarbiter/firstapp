@@ -36,28 +36,28 @@ function productSlugExists($slug)
 }
 function createProduct($name, $slug, $price, $short_des, $long_des, $image, $id_categories)
 {
-    
-        global $db;
-        $db->begin_transaction();
-        try {
-            $image_path = UploadProductImage($image);
-            $query = $db->prepare("INSERT INTO tbl_product (name,slug,price,qty,short_des,long_des, image) VALUE ('$name', '$slug', '$price',0,'$short_des','$long_des', '$image_path')");
 
-            if ($query->execute()) {
-                $id_product = $query->insert_id;
-                foreach ($id_categories as $id_category) {
-                    $query1 = $db->prepare("INSERT INTO tbl_product_category (id_category,id_product) VALUE ('$id_category', '$id_product')");
-                    $query1->execute();
-                }
-                $db->commit();
-                return true;
+    global $db;
+    $db->begin_transaction();
+    try {
+        $image_path = UploadProductImage($image);
+        $query = $db->prepare("INSERT INTO tbl_product (name,slug,price,qty,short_des,long_des, image) VALUE ('$name', '$slug', '$price',0,'$short_des','$long_des', '$image_path')");
+
+        if ($query->execute()) {
+            $id_product = $query->insert_id;
+            foreach ($id_categories as $id_category) {
+                $query1 = $db->prepare("INSERT INTO tbl_product_category (id_category,id_product) VALUE ('$id_category', '$id_product')");
+                $query1->execute();
             }
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            $db->rollback();
-            return false;
+            $db->commit();
+            return true;
         }
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        $db->rollback();
+        return false;
     }
+}
 
 function getProductByID($id)
 {
@@ -122,12 +122,12 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
     $db->begin_transaction();
     try {
         $image_path = null;
-        
-        
+
+
         // Process image if provided
         if ($image && $image['name'] !== '') {
             $image_path = UploadProductImage($image);
-            
+
             // Update query with image
             $query = $db->query("UPDATE tbl_product SET name = '$name', slug = '$slug', price = '$price', 
                                 short_des = '$short_des', long_des = '$long_des', image = '$image_path' 
@@ -159,7 +159,7 @@ function updateProduct($id, $name, $slug, $price, $short_des, $long_des, $id_cat
             $db->commit();
             return true;
         }
-        
+
         $db->commit();
         return false;
     } catch (Exception $e) {
@@ -189,7 +189,8 @@ function getProductCategories($id)
     }
     return null;
 }
-function UploadProductImage($image){
+function UploadProductImage($image)
+{
     //tbl_product -> id_product -> tbl_product_category
     $img_name = $image['name'];
     $img_size = $image['size'];
