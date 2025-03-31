@@ -1,5 +1,5 @@
 <?php
-$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $image_err = '';
+$name_err = $slug_err = $price_err = $short_des_err = $long_des_err = $image_err = $categories_err = '';
 if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && isset($_POST['short_des']) && isset($_POST['long_des']) && isset($_FILES['image'])) {
     $name = $_POST['name'];
     $slug = $_POST['slug'];
@@ -37,7 +37,10 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
     if (empty($long_des)) {
         $long_des_err = "Long Description is required!";
     }
-    if (empty($name_err) && empty($slug_err) && empty($price_err) && empty($short_des_err) && empty($long_des_err)) {
+    if (empty($id_categories)) {
+        $categories_err = "Categories is required!";
+    }
+    if (empty($name_err) && empty($slug_err) && empty($price_err) && empty($short_des_err) && empty($long_des_err) && empty($categories_err)) {
         try {
             if (createProduct($name, $slug, $price, $short_des, $long_des, $image, $id_categories)) {
                 echo '<div class="alert alert-success" role="alert">
@@ -114,17 +117,24 @@ if (isset($_POST['name']) && isset($_POST['slug']) && isset($_POST['price']) && 
         $manage_categories = getCategories();
         if ($manage_categories !== null) {
             while ($row = $manage_categories->fetch_object()) {
+                $checked = isset($_POST['id_categories']) && in_array($row->id_category, $_POST['id_categories']) ? 'checked' : '';
         ?>
                 <div class="form-check">
-                    <input name="id_categories[]" class="form-check-input" type="checkbox" value="<?php echo $row->id_category ?>" id="flexCheckDefault">
+                    <input name="id_categories[]" <?php echo $checked; ?> class="form-check-input" type="checkbox" value="<?php echo $row->id_category ?>" id="flexCheckDefault">
                     <label class="form-check-label" for="flexCheckDefault">
                         <?php echo $row->name ?>
                     </label>
+
                 </div>
         <?php
             }
         }
         ?>
+        <?php if (!empty($categories_err)) : ?>
+        <div class="invalid-feedback d-block">
+            <?php echo $categories_err ?>
+        </div>
+    <?php endif; ?>
     </div>
     <div class="d-flex justify-content-between">
         <a href="./?page=product/home" role="button" class="btn btn-secondary">Cancel</a>

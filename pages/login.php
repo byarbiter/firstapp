@@ -5,14 +5,22 @@ if (isset($_POST['username']) && isset($_POST['passwd'])) {
   $username = $_POST['username'];
   $passwd = $_POST['passwd'];
 
-
   if (usernameExists($username)) {
-    if (logUserIn($username, $passwd)) {
-
-
-      header('Location: ./?page=dashboard');
+    // Check if the login function is setting the session correctly
+    $loginResult = logUserIn($username, $passwd);
+    if ($loginResult) {
+      // Get the exact role string from the database
+      $role = getUserRole();
+      if ($role === 'Admin') {
+        header('Location: ./?page=dashboard');
+      } elseif ($role === 'User') {
+        header('Location: ./?page=home');
+      } else {
+        header('Location: ./');
+      }
+      exit();
     } else {
-      $passwd_err = 'Password not match';
+      $passwd_err = 'Incorrect password';
     }
   } else {
     $username_err = 'Username not found';

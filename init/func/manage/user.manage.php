@@ -3,31 +3,38 @@
 function getUsers()
 {
     global $db;
-    $query = $db->query("SELECT id_user,user_label, level FROM tbl_user WHERE level = 'User'");
-    if ($query->num_rows) {
-        return $query;
+    $query = $db->prepare("SELECT id_user, user_label, level FROM tbl_user WHERE level = 'User'");
+    $query->execute();
+    $result = $query->get_result();
+    
+    if ($result->num_rows) {
+        return $result;
     }
     return null;
 }
 
-
 function createUser($user_label, $username, $passwd)
 {
     global $db;
-    $query = $db->prepare("INSERT INTO tbl_user (user_label,username,passwd,level) VALUE ('$user_label', '$username', '$passwd', 'User')");
+    $query = $db->prepare("INSERT INTO tbl_user (user_label, username, passwd, level) VALUES (?, ?, ?, 'User')");
+    $query->bind_param("sss", $user_label, $username, $passwd);
+    
     if ($query->execute()) {
         return true;
     }
     return false;
 }
 
-
 function getUserByID($id)
 {
     global $db;
-    $query = $db->query("SELECT id_user,user_label,level FROM tbl_user WHERE id_user = '$id' AND level = 'User'");
-    if ($query->num_rows) {
-        return $query->fetch_object();
+    $query = $db->prepare("SELECT id_user, user_label, level FROM tbl_user WHERE id_user = ? AND level = 'User'");
+    $query->bind_param("i", $id);
+    $query->execute();
+    $result = $query->get_result();
+    
+    if ($result->num_rows) {
+        return $result->fetch_object();
     }
     return null;
 }
@@ -35,37 +42,49 @@ function getUserByID($id)
 function updateUser($id, $user_label, $username, $passwd)
 {
     global $db;
-
-    //if(empty($username)){
-    //  $username_query = "";
-    //}else{
-    //    $username_query = ", username = '$username'";
-    //}
-    $username_query = empty($username) ? "" : ", username = '$username'";
     
-    //if(empty($passwd)){
-    //    $passwd_query = "";
-    //}else{
-    //    $passwd_query = ", passwd = '$passwd'";
-    //}
-
-    $passwd_query = empty($passwd) ? "" : ", passwd = '$passwd'";
-
-    //$query = $db->query("UPDATE tbl_user SET user_label = '$user_label'". $username_query . $passwd_query." WHERE id_user = '$id'");
-
-    $db->query("UPDATE tbl_user SET user_label = '$user_label'". $username_query . $passwd_query." WHERE id_user = '$id'");
+    // Initialize base query
+    $query = "UPDATE tbl_user SET user_label = ?";
+    $types = "s";
+    $params = [$user_label];
     
-    if ($db->affected_rows > 0) {  
+    // Add username if provided
+    if (!empty($username)) {
+        $query .= ", username = ?";
+        $types .= "s";
+        $params[] = $username;
+    }
+    
+    // Add password if provided
+    if (!empty($passwd)) {
+        $query .= ", passwd = ?";
+        $types .= "s";
+        $params[] = $passwd;
+    }
+    
+    // Complete the query
+    $query .= " WHERE id_user = ?";
+    $types .= "i";
+    $params[] = $id;
+    
+    // Prepare and execute
+    $stmt = $db->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    
+    if ($stmt->execute()) {
         return true;
     }
     return false;
 }
 
-
-function deleteUser($id){
+function deleteUser($id)
+{
     global $db;
-    $db->query("DELETE FROM tbl_user WHERE id_user = '$id'");
-    if($db->affected_rows){
+    $query = $db->prepare("DELETE FROM tbl_user WHERE id_user = ?");
+    $query->bind_param("i", $id);
+    $query->execute();
+    
+    if ($db->affected_rows) {
         return true;
     }
     return false;
