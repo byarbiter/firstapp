@@ -35,7 +35,7 @@ if (isset($_GET['page'])) {
     ];
 
     // Define an array of user pages (currently empty)
-    $user_page = [];
+    $user_pages = ['cart/home', 'cart/create'];
 
     // Define an array of pages accessible before login
     $before_login_pages = ['login', 'register'];
@@ -43,7 +43,8 @@ if (isset($_GET['page'])) {
     // Define an array of pages accessible after login, including admin pages
     $after_login_pages = [
         'dashboard',
-        ...$admin_pages // flat copy
+        ...$admin_pages,
+        ...$user_pages // flat copy
     ];
 
     // Check if the page is 'logout', a before-login page when not logged in, or an after-login page when logged in

@@ -10,9 +10,7 @@ $user = LoggedInUser() ?>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 
-        <?php
-        if (isAdmin()) {
-        ?>
+        <?php if ($user && isAdmin()) { ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Manage</a>
             <ul class="dropdown-menu">
@@ -22,11 +20,19 @@ $user = LoggedInUser() ?>
               <li><a class="dropdown-item" href="./?page=stock/home">Stock Page</a></li>
             </ul>
           </li>
-        <?php
-        }
-        ?>
+        <?php 
+      }
+      ?>
 
-
+        <?php if ($user && isUser()) { ?>
+          <li class="nav-item">
+            <a href="./?page=cart/home" class="btn btn-primary"> Cart
+              <span class="badge text-sg-secondary">0</span>
+            </a>
+          </li>
+        <?php 
+      } 
+      ?>
 
 
         <li class="nav-item dropdown">

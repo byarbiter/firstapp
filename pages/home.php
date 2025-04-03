@@ -51,7 +51,7 @@
 
 <div class="container product-slider-section">
     <h1 class="my-3 section-heading">Featured Products</h1>
-    
+
     <div class="row product-container">
         <?php
         $manage_products = getProduct();
@@ -73,19 +73,19 @@
                             echo '<img src="' . $row->image . '" class="card-img-top product-slide-img" alt="' . htmlspecialchars($row->name) . '">';
                         }
                         ?>
-                        
+
                         <div class="card-body product-content">
                             <h5 class="card-title"><?php echo htmlspecialchars($row->name); ?></h5>
                             <div class="product-price">
                                 <span class="price-line"></span>
                                 <p class="card-text">$<?php echo htmlspecialchars($row->price); ?></p>
                             </div>
-                            
+
                             <?php if (!empty($row->short_des)) { ?>
                                 <p class="card-text product-description"><?php echo htmlspecialchars($row->short_des); ?></p>
                             <?php } ?>
-                            
-                            <?php 
+
+                            <?php
                             // Only show condensed version of long description if available
                             if (!empty($row->long_des)) {
                                 $truncated_desc = strlen($row->long_des) > 100 ?
@@ -94,8 +94,8 @@
                                 echo '<p class="card-text product-description">' . $truncated_desc . '</p>';
                             }
                             ?>
-                            
-                            <a href="#" class="btn btn-primary add-to-cart">Add to Cart</a>
+
+                            <a role="button" href="./?page=cart/create&id= <?php echo htmlspecialchars($row->id_product) ?>" class="btn btn-primary add-to-cart">Add to Cart</a>
                         </div>
                     </div>
                 </div>
