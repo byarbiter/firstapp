@@ -15,8 +15,12 @@ function addProductToCart($id_product)
     $query = $db->prepare("INSERT INTO tbl_cart (id_user, status) values (?,'pending')");
     $query->bind_param('i', $user->id_user);
     $query->execute();
-    $result = $query->get_result();
     if ($db->affected_rows) {
+      $cart_id = $db->insert_id;
+      $query = $db->prepare("SELECT * FROM tbl_cart WHERE id_cart = ?");
+      $query->bind_param('i', $cart_id);
+      $query->execute();
+      $result = $query->get_result();
       $cart = $result->fetch_object();
     }
   }
