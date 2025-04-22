@@ -3,13 +3,170 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
   background-color: #f8f9fa;
   color: #333;
   line-height: 1.6;
+}
+
+/* Navbar fixes */
+.navbar {
+  padding: 0.5rem 1rem;
+}
+
+/* Carousel fixes */
+.carousel {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-inner {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.carousel-item {
+  position: relative;
+  display: none;
+  align-items: center;
+  width: 100%;
+  transition: transform 0.6s ease;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  background-color: #777; /* Gray background for placeholder */
+}
+
+.carousel-item.active {
+  display: block;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Ensure minimum height for carousel on mobile */
+@media (max-width: 767px) {
+  .carousel-item {
+    height: 300px; /* Minimum height on mobile */
+  }
+
+  .carousel-caption {
+    bottom: 0;
+    padding-bottom: 30px; /* Add more padding at the bottom for indicators */
+  }
+}
+
+/* Caption positioning fixes */
+.carousel-caption {
+  position: absolute;
+  right: 15%;
+  bottom: 40px; /* Increased to make room for indicators */
+  left: 15%;
+  z-index: 10;
+  padding-top: 20px;
+  padding-bottom: 40px; /* Increased to make room for indicators */
+  color: #fff;
+  text-align: center;
+}
+
+/* Indicator fixes */
+.carousel-indicators {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: center;
+  padding-left: 0;
+  margin-right: 15%;
+  margin-left: 15%;
+  list-style: none;
+}
+
+.carousel-indicators li {
+  box-sizing: content-box;
+  flex: 0 1 auto;
+  width: 30px;
+  height: 3px;
+  margin-right: 3px;
+  margin-left: 3px;
+  text-indent: -999px;
+  cursor: pointer;
+  background-color: #fff;
+  background-clip: padding-box;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  opacity: 0.5;
+  transition: opacity 0.6s ease;
+}
+
+.carousel-indicators .active {
+  opacity: 1;
+}
+
+/* Control arrow fixes */
+.carousel-control-prev,
+.carousel-control-next {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  color: #fff;
+  text-align: center;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  color: #fff;
+  text-decoration: none;
+  outline: 0;
+  opacity: 0.9;
+}
+
+.carousel-control-prev {
+  left: 0;
+}
+
+.carousel-control-next {
+  right: 0;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  background-size: 100% 100%;
+}
+
+/* Placeholder styling */
+.placeholder {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  color: white;
+}
+
+/* Product grid CSS (your previous CSS) */
+.product {
+  min-width: 0;
 }
 
 /* Product slider section */
@@ -28,7 +185,7 @@ body {
 }
 
 .section-heading::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -71,11 +228,11 @@ body {
 }
 
 .product img {
-  width: 100%;
-  height: 240px;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  max-height: 240px;
   object-fit: cover;
-  display: block;
-  transition: transform 0.5s ease;
+  transition: transform 0.3s ease;
 }
 
 .product:hover img {
@@ -118,6 +275,12 @@ body {
   margin-top: 12px;
 }
 
+.product h3,
+.product-description {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 .product-badge {
   position: absolute;
   top: 12px;
@@ -152,34 +315,50 @@ body {
   background-color: #0055aa;
 }
 
-
 /* Responsive adjustments */
 @media (max-width: 992px) {
   .product-container {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 0 15px;
+  }
+
+  .product img {
+    height: 200px;
   }
 }
 
 @media (max-width: 768px) {
   .product-container {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 20px;
   }
-  
+
   .product img {
     height: 180px;
   }
-  
+
   .section-heading {
     font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .product-container {
-    grid-template-columns: 1fr;
+  .product-slider-section {
+    padding: 0 15px 30px;
   }
-  
+
+  .product-container {
+    grid-template-columns: minmax(280px, 90%);
+    justify-content: center;
+    gap: 25px;
+  }
+
+  .product {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
   .product-content {
     padding: 15px;
   }

@@ -20,19 +20,19 @@ $user = LoggedInUser() ?>
               <li><a class="dropdown-item" href="./?page=stock/home">Stock Page</a></li>
             </ul>
           </li>
-        <?php 
-      }
-      ?>
+        <?php
+        }
+        ?>
 
         <?php if ($user && isUser()) { ?>
           <li class="nav-item">
             <a href="./?page=cart/home" class="btn btn-primary"> Cart
-              <span class="badge text-sg-secondary">0</span>
+              <span class="badge text-sg-secondary"><?php echo getPendingCartProductCount() ?></span>
             </a>
           </li>
-        <?php 
-      } 
-      ?>
+        <?php
+        }
+        ?>
 
 
         <li class="nav-item dropdown">

@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 // include database connection
 require_once('init/db.init.php');

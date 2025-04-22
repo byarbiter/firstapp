@@ -35,7 +35,7 @@ if (isset($_GET['page'])) {
     ];
 
     // Define an array of user pages (currently empty)
-    $user_pages = ['cart/home', 'cart/create'];
+    $user_pages = ['cart/home', 'cart/create', 'cart/delete'];
 
     // Define an array of pages accessible before login
     $before_login_pages = ['login', 'register'];
@@ -60,6 +60,8 @@ if (isset($_GET['page'])) {
 
         // Include the requested page
         include('pages/' . $page . '.php');
+    } else if (in_array($page, $after_login_pages) && !LoggedInUser()) {
+        header("Location: ./?page=login");
     } else {
         // If the conditions are not met, redirect to the home page
         header("Location: ./");

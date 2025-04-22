@@ -5,4 +5,3 @@ if (!isset($_GET['id']) || getProductByID($_GET['id']) === null) {
 }
 addProductToCart($_GET['id']);
 header('Location: ./');
-?>
